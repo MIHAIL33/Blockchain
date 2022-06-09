@@ -47,7 +47,7 @@ func Sign(priv *rsa.PrivateKey, data []byte) []byte {
 }
 
 func StringPublic(pub *rsa.PublicKey) string {
-	return string(Base64Encode(x509.MarshalPKCS1PublicKey(pub)))
+	return Base64Encode(x509.MarshalPKCS1PublicKey(pub))
 }
 
 func ParsePublic(pubData string) *rsa.PublicKey {
@@ -67,7 +67,7 @@ func GeneratePrivate(bits uint) *rsa.PrivateKey {
 }
 
 func StringPrivate(priv *rsa.PrivateKey) string {
-	return string(Base64Encode(x509.MarshalPKCS1PrivateKey(priv)))
+	return Base64Encode(x509.MarshalPKCS1PrivateKey(priv))
 }
 
 func ParsePrivate(privData string) *rsa.PrivateKey {
@@ -82,8 +82,8 @@ func Verify(pub *rsa.PublicKey, data, sign []byte) error {
 	return rsa.VerifyPSS(pub, crypto.SHA256, data, sign, nil)
 }
 
-func Base64Encode(data []byte) []byte {
-	return []byte(base64.StdEncoding.EncodeToString(data))
+func Base64Encode(data []byte) string {
+	return base64.StdEncoding.EncodeToString(data)
 }
 
 func Base64Decode(data string) []byte {

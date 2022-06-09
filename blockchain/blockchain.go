@@ -2,12 +2,13 @@ package blockchain
 
 import (
 	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 	"os"
 	"time"
 )
 
 type Blockchain struct {
-	DB *sql.DB
+	DB    *sql.DB
 	index uint64
 }
 
@@ -19,22 +20,22 @@ func NewChain(filename, receiver string) error {
 	file.Close()
 	db, err := sql.Open("sqlite3", filename)
 	if err != nil {
-		return nil
+		return err
 	}
 	defer db.Close()
 
 	_, err = db.Exec(CREATE_TABLE)
 	if err != nil {
-		return nil
+		return err
 	}
 	chain := &Blockchain{
 		DB: db,
 	}
 
 	genesis := &Block{
-		PrevHash: []byte(GENESIS_BLOCK),
-		Mapping: make(map[string]uint64),
-		Miner: receiver,
+		PrevHash:  []byte(GENESIS_BLOCK),
+		Mapping:   make(map[string]uint64),
+		Miner:     receiver,
 		TimeStamp: time.Now().Format(time.RFC3339),
 	}
 	genesis.Mapping[STORAGE_CHAIN] = STORAGE_VALUE
@@ -60,15 +61,14 @@ func LoadChain(filename string) *Blockchain {
 	chain := &Blockchain{
 		DB: db,
 	}
-	chain.index = chain.Size()
 	return chain
 }
 
 func (chain *Blockchain) Size() uint64 {
-	var index uint64
+	var size uint64
 	row := chain.DB.QueryRow("SELECT Id FROM BlockChain ORDER BY Id DESC")
-	row.Scan(&index)
-	return index
+	row.Scan(&size)
+	return size
 }
 
 func (chain *Blockchain) LastHash() []byte {
@@ -78,13 +78,13 @@ func (chain *Blockchain) LastHash() []byte {
 	return Base64Decode(hash)
 }
 
-func (chain *Blockchain) Balance(address string) uint64 {
+func (chain *Blockchain) Balance(address string, size uint64) uint64 {
 	var (
+		sblock  string
+		block   *Block
 		balance uint64
-		sblock string
-		block *Block
 	)
-	rows, err := chain.DB.Query("SELECT Block FROM BlockChain WHERE Id <= $1 ORDER BY Id DESC", chain.index)
+	rows, err := chain.DB.Query("SELECT Block FROM BlockChain WHERE Id <= $1 ORDER BY Id DESC", size)
 	if err != nil {
 		return balance
 	}
@@ -99,4 +99,3 @@ func (chain *Blockchain) Balance(address string) uint64 {
 	}
 	return balance
 }
-
