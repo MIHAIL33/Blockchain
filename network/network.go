@@ -1,22 +1,9 @@
 package network
 
 import (
-	"encoding/json"
 	"net"
 	"strings"
 	"time"
-)
-
-type Package struct {
-	Option int
-	Data string
-}
-
-const (
-	ENDBYTES = "\000\005\007\001\001\007\005\000"
-	WAITTIME = 5
-	DMAXSIZE = (2 << 20) // (2^20)*2 = 2MiB
-	BUFFSIZE = (4 << 10) // (2^10)*4 = 4KiB
 )
 
 type Listener net.Listener
@@ -92,23 +79,6 @@ func Send(address string, pack *Package) *Package {
 	}
 
 	return res
-}
-
-func SerializePackage(pack *Package) string {
-	jsonData, err := json.MarshalIndent(*pack, "", "\t")
-	if err != nil {
-		return ""
-	}
-	return string(jsonData)
-}
-
-func DeserializePackage(data string) *Package {
-	var pack Package
-	err := json.Unmarshal([]byte(data), &pack)
-	if err != nil {
-		return nil
-	}
-	return &pack
 }
 
 func readPackage(conn net.Conn) *Package {
